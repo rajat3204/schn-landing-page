@@ -1,32 +1,35 @@
-# SSH Login Alert Automation
+# 🚨 SSH Login Alert Automation
 
-This project sets up an automatic email alert whenever any user logs in to the server via SSH.
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Linux](https://img.shields.io/badge/Platform-Linux-green)
+![SSH](https://img.shields.io/badge/Trigger-SSH_Login-orange)
+![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen)
 
-The script:
-- Triggers automatically on SSH login
-- Logs login details to a file
-- Sends email alerts
-- Ignores whitelisted IP addresses (e.g., Jenkins server)
+Automatically send email alerts whenever a user logs in to your server via SSH.
 
----
-
-## 📌 File Location
-
-Script Path:
-```
-/usr/local/bin/ssh_login_alert.py
-```
-
-Log File:
-```
-/var/log/ssh_login_alert.log
-```
+This lightweight Python script:
+- ✅ Detects SSH logins
+- 📧 Sends email alerts
+- 📝 Logs login activity
+- 🛡 Supports IP whitelisting
+- 🔒 Uses secure environment variables for credentials
 
 ---
 
-## ⚙️ Setup Instructions
+## 📂 Project Structure
 
-### 1️⃣ Create the Script
+| File | Description |
+|------|------------|
+| `/usr/local/bin/ssh_login_alert.py` | Main alert script |
+| `/var/log/ssh_login_alert.log` | Log file |
+
+---
+
+## 🚀 Setup Guide
+
+---
+
+## 1️⃣ Create the Script
 
 ```bash
 sudo vim /usr/local/bin/ssh_login_alert.py
@@ -34,17 +37,50 @@ sudo vim /usr/local/bin/ssh_login_alert.py
 
 Paste the script content.
 
-Update this variable inside the script:
+---
 
+## 2️⃣ Update Script Configuration (Required)
+
+Open the script and update:
+
+### 🔹 Server Name
 ```python
-SERVER_NAME = "<enter-the-server-name>"
+SERVER_NAME = "PROD-SERVER"
 ```
-
-Replace it with your actual server name.
 
 ---
 
-### 2️⃣ Set Required Permissions
+### 🔹 Sender Email (EMAIL_FROM)
+```python
+EMAIL_FROM = "your_email@gmail.com"
+```
+
+---
+
+### 🔹 Receiver Emails (EMAIL_TO)
+```python
+EMAIL_TO = [
+    "admin@example.com",
+    "security@example.com"
+]
+```
+
+---
+
+### 🔹 Whitelisted IP Addresses
+```python
+WHITELIST_IPS = [
+    "10.118.7.46",
+]
+```
+
+Whitelisted IPs:
+- Will be logged
+- Will NOT trigger email alerts
+
+---
+
+## 3️⃣ Set Required Permissions
 
 ```bash
 sudo chmod +x /usr/local/bin/ssh_login_alert.py
@@ -57,7 +93,7 @@ sudo chmod 1777 /var/log/ssh_login_alert.log
 
 ---
 
-### 3️⃣ Configure SSH to Trigger Script Automatically
+## 4️⃣ Configure SSH to Trigger Script
 
 Edit SSH RC file:
 
@@ -65,7 +101,7 @@ Edit SSH RC file:
 sudo vim /etc/ssh/sshrc
 ```
 
-Add this line at the bottom:
+Add:
 
 ```bash
 /usr/bin/env python3 /usr/local/bin/ssh_login_alert.py
@@ -75,9 +111,11 @@ Save and exit.
 
 ---
 
-### 4️⃣ Configure Email Password (Environment Variable)
+## 5️⃣ Configure Email Password (Secure Method)
 
-Edit system profile:
+⚠️ Use **Gmail App Password** (NOT your main Gmail password).
+
+Edit:
 
 ```bash
 sudo vim /etc/profile
@@ -86,10 +124,10 @@ sudo vim /etc/profile
 Add:
 
 ```bash
-export ALERT_EMAIL_PASS="<enter_your_mail_password>"
+export ALERT_EMAIL_PASS="your_gmail_app_password"
 ```
 
-Reload environment:
+Reload:
 
 ```bash
 source /etc/profile
@@ -97,7 +135,7 @@ source /etc/profile
 
 ---
 
-### 5️⃣ Restart SSH Service
+## 6️⃣ Restart SSH Service
 
 ```bash
 sudo systemctl restart ssh
@@ -105,38 +143,20 @@ sudo systemctl restart ssh
 
 ---
 
-## 🧪 Testing the Setup
+# 🧪 Testing
 
 1. Open a new SSH session.
-2. Check log file:
+2. Check logs:
 
 ```bash
 cat /var/log/ssh_login_alert.log
 ```
 
-3. Verify email alert is received.
+3. Confirm email is received.
 
 ---
 
-## 🛡 Whitelisting IPs
-
-Inside the script:
-
-```python
-WHITELIST_IPS = [
-    "10.118.7.46",
-]
-```
-
-Add any IP address that should NOT trigger email alerts.
-
-If a whitelisted IP logs in:
-- It will be logged
-- Email will NOT be sent
-
----
-
-## 📝 Log Output Example
+# 📜 Example Alert Output
 
 ```
 ============================================
@@ -151,42 +171,68 @@ Date/Time        : 2026-02-18 10:45:12
 
 ---
 
-## 🚨 Troubleshooting
+# 🛠 Troubleshooting
 
 ### Email not sending?
 
-Check environment variable:
+Check:
 
 ```bash
 echo $ALERT_EMAIL_PASS
 ```
 
 If empty:
+
 ```bash
 source /etc/profile
 ```
 
 Make sure:
-- Gmail App Password is used
-- SMTP access is allowed
+- Gmail 2-Step Verification is enabled
+- App Password is used
+- SMTP port 587 is allowed
 
 ---
 
-## 🔐 Security Recommendations
+# 🔐 Security Best Practices
 
-- Do NOT hardcode passwords in the script.
-- Use App Password instead of main Gmail password.
-- Restrict access to the script file.
-- Monitor logs regularly.
+- ❌ Never hardcode passwords
+- ✅ Use Gmail App Password
+- ✅ Restrict file permissions
+- ✅ Keep whitelist minimal
+- ✅ Monitor logs regularly
 
 ---
 
-## ✅ Result
+# 📌 Features Summary
+
+| Feature | Status |
+|----------|--------|
+| SSH Login Detection | ✅ |
+| Email Alerts | ✅ |
+| IP Whitelisting | ✅ |
+| Public IP Detection | ✅ |
+| Logging | ✅ |
+| Production Ready | ✅ |
+
+---
+
+# 🎯 Final Result
 
 After setup:
+
 - Every SSH login triggers the script
 - Email alert is sent
-- Activity is logged
+- Login activity is logged
 - Whitelisted IPs are ignored
 
-Your SSH login monitoring system is now fully automated.
+---
+
+## 👨‍💻 Author
+
+Rajat Kumar  
+DevOps Engineer  
+
+---
+
+⭐ If this project helped you, consider starring the repository.
