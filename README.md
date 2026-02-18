@@ -1,63 +1,59 @@
-# 🚨 SSH Login Alert Automation
+# 🚀 Teleport Login Journal Watcher
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
-![Linux](https://img.shields.io/badge/Platform-Linux-green)
-![SSH](https://img.shields.io/badge/Trigger-SSH_Login-orange)
+![Systemd](https://img.shields.io/badge/Systemd-Service-green)
+![Teleport](https://img.shields.io/badge/Teleport-Session_Monitor-orange)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen)
 
-Automatically send email alerts whenever a user logs in to your server via SSH.
-
-This lightweight Python script:
-- ✅ Detects SSH logins
-- 📧 Sends email alerts
-- 📝 Logs login activity
-- 🛡 Supports IP whitelisting
-- 🔒 Uses secure environment variables for credentials
+A real-time monitoring service that watches Teleport logs using `journalctl` and sends email alerts whenever a new Teleport session starts.
 
 ---
 
-## 📂 Project Structure
+## 📌 Features
 
-| File | Description |
-|------|------------|
-| `/usr/local/bin/ssh_login_alert.py` | Main alert script |
-| `/var/log/ssh_login_alert.log` | Log file |
-
----
-
-## 🚀 Setup Guide
+- ✅ Real-time Teleport session monitoring
+- 📧 Email alert on every session start
+- 📝 Logs login details to file
+- 🔁 Runs as a systemd service
+- 🔒 Uses secure environment variable for email password
+- 🖥 Captures hostname & private IP automatically
 
 ---
 
-## 1️⃣ Create the Script
+# 📂 File Locations
+
+| File | Path |
+|------|------|
+| Python Script | `/usr/local/bin/teleport_login_journal_watcher.py` |
+| Log File | `/var/log/teleport_login.log` |
+| Systemd Service | `/etc/systemd/system/teleport-login-watcher.service` |
+
+---
+
+# ⚙️ Setup Instructions
+
+---
+
+## 1️⃣ Create / Update the Python Script
 
 ```bash
-sudo vim /usr/local/bin/ssh_login_alert.py
+sudo vim /usr/local/bin/teleport_login_journal_watcher.py
 ```
 
 Paste the script content.
 
 ---
 
-## 2️⃣ Update Script Configuration (Required)
+## 2️⃣ Update Script Configuration (IMPORTANT)
 
-Open the script and update:
+Inside the script, update:
 
-### 🔹 Server Name
-```python
-SERVER_NAME = "PROD-SERVER"
-```
-
----
-
-### 🔹 Sender Email (EMAIL_FROM)
+### 🔹 Sender Email
 ```python
 EMAIL_FROM = "your_email@gmail.com"
 ```
 
----
-
-### 🔹 Receiver Emails (EMAIL_TO)
+### 🔹 Receiver Emails
 ```python
 EMAIL_TO = [
     "admin@example.com",
@@ -65,155 +61,210 @@ EMAIL_TO = [
 ]
 ```
 
+⚠️ Replace with your actual email IDs.
+
 ---
 
-### 🔹 Whitelisted IP Addresses
-```python
-WHITELIST_IPS = [
-    "10.118.7.46",
-]
+## 3️⃣ Set Proper Permissions
+
+Based on your environment:
+
+### Script Permissions
+```bash
+sudo chmod 755 /usr/local/bin/teleport_login_journal_watcher.py
+sudo chown root:root /usr/local/bin/teleport_login_journal_watcher.py
 ```
 
-Whitelisted IPs:
-- Will be logged
-- Will NOT trigger email alerts
-
----
-
-## 3️⃣ Set Required Permissions
-
-```bash
-sudo chmod +x /usr/local/bin/ssh_login_alert.py
-
-sudo touch /var/log/ssh_login_alert.log
-sudo chown root:adm /var/log/ssh_login_alert.log
-sudo chmod 664 /var/log/ssh_login_alert.log
-sudo chmod 1777 /var/log/ssh_login_alert.log
+Expected:
+```
+-rwxr-xr-x 1 root root teleport_login_journal_watcher.py
 ```
 
 ---
 
-## 4️⃣ Configure SSH to Trigger Script
+### Log File Permissions
+```bash
+sudo touch /var/log/teleport_login.log
+sudo chmod 644 /var/log/teleport_login.log
+sudo chown root:root /var/log/teleport_login.log
+```
 
-Edit SSH RC file:
+Expected:
+```
+-rw-r--r-- 1 root root teleport_login.log
+```
+
+---
+
+## 4️⃣ Configure Email Password (Environment Variable)
+
+⚠️ Use **Gmail App Password** (NOT your main Gmail password)
+
+Edit:
 
 ```bash
-sudo vim /etc/ssh/sshrc
+sudo vim /etc/environment
 ```
 
 Add:
 
-```bash
-/usr/bin/env python3 /usr/local/bin/ssh_login_alert.py
+```
+ALERT_EMAIL_PASS=your_gmail_app_password
 ```
 
 Save and exit.
 
 ---
 
-## 5️⃣ Configure Email Password (Secure Method)
+## 5️⃣ Create Systemd Service
 
-⚠️ Use **Gmail App Password** (NOT your main Gmail password).
-
-Edit:
+Create the service file:
 
 ```bash
-sudo vim /etc/profile
+sudo vim /etc/systemd/system/teleport-login-watcher.service
 ```
 
-Add:
+Paste:
 
-```bash
-export ALERT_EMAIL_PASS="your_gmail_app_password"
+```
+[Unit]
+Description=Teleport Login Journal Watcher
+After=teleport.service
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStart=/usr/bin/python3 /usr/local/bin/teleport_login_journal_watcher.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-Reload:
+Save and exit.
+
+---
+
+## 6️⃣ Reload Systemd
 
 ```bash
-source /etc/profile
+sudo systemctl daemon-reload
 ```
 
 ---
 
-## 6️⃣ Restart SSH Service
+## 7️⃣ Start the Service
 
 ```bash
-sudo systemctl restart ssh
+sudo systemctl start teleport-login-watcher
 ```
+
+---
+
+## 8️⃣ Check Service Status
+
+```bash
+sudo systemctl status teleport-login-watcher
+```
+
+You should see:
+```
+active (running)
+```
+
+---
+
+## 9️⃣ Enable Service at Boot
+
+```bash
+sudo systemctl enable teleport-login-watcher
+```
+
+Now it will automatically start after every reboot.
 
 ---
 
 # 🧪 Testing
 
-1. Open a new SSH session.
-2. Check logs:
+1. Login using Teleport UI or CLI.
+2. Check log file:
 
 ```bash
-cat /var/log/ssh_login_alert.log
+cat /var/log/teleport_login.log
 ```
 
-3. Confirm email is received.
-
----
-
-# 📜 Example Alert Output
+Example output:
 
 ```
-============================================
- SSH LOGIN DETECTED ON PROD-SERVER
-User             : ubuntu
-Login IP         : 14.xx.xx.xx
-Server Public IP : 3.xx.xx.xx
-Server Hostname  : ip-172-31-xx-xx
-Date/Time        : 2026-02-18 10:45:12
-============================================
+====================================
+TELEPORT LOGIN DETECTED
+Teleport User : rajat
+OS Login      : ubuntu
+Client IP     : 14.xx.xx.xx
+Server        : nxsam-test
+Private IP    : 10.xx.xx.xx
+Cluster       : prod-cluster
+Session ID    : abcdef-12345
+Time (UTC)    : 2026-02-18T10:30:00
+====================================
+EMAIL STATUS : Sent successfully
 ```
 
 ---
 
 # 🛠 Troubleshooting
 
+### Service not starting?
+
+Check logs:
+
+```bash
+journalctl -u teleport-login-watcher -f
+```
+
+---
+
 ### Email not sending?
 
-Check:
+Verify:
 
 ```bash
 echo $ALERT_EMAIL_PASS
 ```
 
 If empty:
+- Ensure `/etc/environment` contains the variable
+- Restart the service:
 
 ```bash
-source /etc/profile
+sudo systemctl restart teleport-login-watcher
 ```
-
-Make sure:
-- Gmail 2-Step Verification is enabled
-- App Password is used
-- SMTP port 587 is allowed
 
 ---
 
 # 🔐 Security Best Practices
 
-- ❌ Never hardcode passwords
+- ❌ Never hardcode passwords in script
 - ✅ Use Gmail App Password
-- ✅ Restrict file permissions
-- ✅ Keep whitelist minimal
+- ✅ Keep script owned by root
+- ✅ Restrict log file permissions
 - ✅ Monitor logs regularly
 
 ---
 
-# 📌 Features Summary
+# 📊 Architecture Flow
 
-| Feature | Status |
-|----------|--------|
-| SSH Login Detection | ✅ |
-| Email Alerts | ✅ |
-| IP Whitelisting | ✅ |
-| Public IP Detection | ✅ |
-| Logging | ✅ |
-| Production Ready | ✅ |
+```
+Teleport Login
+        ↓
+journalctl -u teleport -f
+        ↓
+Python Watcher Script
+        ↓
+Log Written → /var/log/teleport_login.log
+        ↓
+Email Alert Sent
+```
 
 ---
 
@@ -221,11 +272,19 @@ Make sure:
 
 After setup:
 
-- Every SSH login triggers the script
-- Email alert is sent
-- Login activity is logged
-- Whitelisted IPs are ignored
+- Every Teleport session start is detected
+- Login details are logged
+- Email alerts are sent
+- Service auto-starts at boot
+- Fully production-ready monitoring
 
 ---
 
+## 👨‍💻 Author
 
+Rajat Kumar  
+DevOps Engineer  
+
+---
+
+⭐ If this project helped you, consider starring the repository.
