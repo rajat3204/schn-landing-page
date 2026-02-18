@@ -228,11 +228,4 @@ After setup:
 
 ---
 
-## 👨‍💻 Author
 
-Rajat Kumar  
-DevOps Engineer  
-
----
-
-⭐ If this project helped you, consider starring the repository.
